@@ -210,7 +210,8 @@
             android:background="@drawable/button_convert_background"
             android:textColor="#FFFFFF"
             android:padding="16dp"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="8dp"
+            android:onClick="onConvertButtonClick"/>
 
         <!-- Total da Carteira -->
         <LinearLayout
