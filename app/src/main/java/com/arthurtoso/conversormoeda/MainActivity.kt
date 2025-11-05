@@ -1,5 +1,6 @@
 package com.arthurtoso.conversormoeda
 
+
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -9,6 +10,12 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        private const val INITIAL_BRL = 100000.00
+        private const val INITIAL_USD = 50000.00
+        private const val INITIAL_BTC = 0.5
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -22,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         val btn = findViewById<Button>(R.id.buttonTeste)
         btn.setOnClickListener {
             val intent = Intent(this, ConverteActivity::class.java)
-            val user = User(100000.00, 50000.00, 0.5)
+            val user = User(INITIAL_BRL, INITIAL_USD, INITIAL_BTC) // AGORA USA VARIÁVEIS
             intent.putExtra("USER_DATA", user)
             startActivity(intent)
         }
