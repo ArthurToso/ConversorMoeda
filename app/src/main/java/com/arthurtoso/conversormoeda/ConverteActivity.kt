@@ -44,22 +44,19 @@ class ConverteActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_converte)
 
-        // 2. Recebe o usuário do Intent
-        // (Usamos 'let' para segurança, mas '!!' funcionaria se você garante)
-        intent.getParcelableExtra<User>("USER_DATA")?.let {
-            currentUser = it
-        } ?: run {
-            // Se o usuário não foi passado, é um erro fatal.
-            showError("Erro: Usuário não encontrado.")
-            finish() // Fecha a activity
-            return
-        }
         spinnerFrom = findViewById(R.id.spinnerFrom)
         spinnerTo = findViewById(R.id.spinnerTo)
         etAmount = findViewById(R.id.etAmount)
         btnConvert = findViewById(R.id.btnConvert)
         progressBar = findViewById(R.id.progressBar)
         tvResult = findViewById(R.id.tvResult)
+
+        if (UserHolder.currentUser == null) {
+            showError("Erro fatal: Usuário não encontrado.")
+            finish()
+            return
+        }
+        currentUser = UserHolder.currentUser!!
 
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -105,7 +102,6 @@ class ConverteActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 withContext(Dispatchers.Main) { showLoading(true) }
-                // Precisamos de todas as cotações para calcular qualquer par
                 val moedas = "USD-BRL,BTC-BRL,BTC-USD"
                 val response = cotacaoApi.getRates(moedas)
 
@@ -116,21 +112,11 @@ class ConverteActivity : AppCompatActivity() {
                     if (convertedAmount > 0) {
                         performTransaction(amount, fromCurrency, convertedAmount, toCurrency)
 
-                        // Formata o resultado
                         val resultText = "Convertido: ${formatCurrency(convertedAmount, toCurrency)}"
 
                         withContext(Dispatchers.Main) {
-                            showLoading(false)
                             tvResult.text = resultText
                             tvResult.visibility = View.VISIBLE
-                            // 5. PREPARA O INTENT DE RESULTADO
-                            val resultIntent = Intent()
-                            // Coloca o usuário MODIFICADO de volta
-                            resultIntent.putExtra("USER_DATA_RESULT", currentUser)
-                            // Define o resultado como OK
-                            setResult(Activity.RESULT_OK, resultIntent)
-                            // Não chamamos finish() aqui; deixamos o usuário ver o resultado.
-                            // Quando ele apertar "Voltar", o resultado OK será enviado.
                         }
                     } else {
                         withContext(Dispatchers.Main) {
@@ -143,12 +129,10 @@ class ConverteActivity : AppCompatActivity() {
                     }
                 }
             } catch (e: Exception) {
-                // Trata exceções (ex: sem internet)
                 withContext(Dispatchers.Main) {
                     showError("Erro de conexão: ${e.message}")
                 }
             } finally {
-                // Garante que o loading seja desativado
                 withContext(Dispatchers.Main) { showLoading(false) }
             }
         }
@@ -162,18 +146,18 @@ class ConverteActivity : AppCompatActivity() {
 
         return when (from) {
             "BRL" -> when (to) {
-                "USD" -> amount / usdBrLRate // Vende BRL, Compra USD
-                "BTC" -> amount / btcBrlRate // Vende BRL, Compra BTC
+                "USD" -> amount / usdBrLRate
+                "BTC" -> amount / btcBrlRate
                 else -> 0.0
             }
             "USD" -> when (to) {
-                "BRL" -> amount * usdBrLRate // Vende USD, Compra BRL
-                "BTC" -> amount / btcUsdRate // Vende USD, Compra BTC
+                "BRL" -> amount * usdBrLRate
+                "BTC" -> amount / btcUsdRate
                 else -> 0.0
             }
             "BTC" -> when (to) {
-                "BRL" -> amount * btcBrlRate // Vende BTC, Compra BRL
-                "USD" -> amount * btcUsdRate // Vende BTC, Compra USD
+                "BRL" -> amount * btcBrlRate
+                "USD" -> amount * btcUsdRate
                 else -> 0.0
             }
             else -> 0.0
@@ -183,7 +167,6 @@ class ConverteActivity : AppCompatActivity() {
     private fun showLoading(isLoading: Boolean) {
         progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         btnConvert.isEnabled = !isLoading
-        // Esconde resultado anterior ao carregar
         if (isLoading) {
             tvResult.visibility = View.GONE
         }
@@ -191,7 +174,7 @@ class ConverteActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-        showLoading(false) // Para o loading se der erro
+        showLoading(false)
     }
 
     private fun formatCurrency(amount: Double, currency: String): String {
@@ -204,7 +187,6 @@ class ConverteActivity : AppCompatActivity() {
     }
 
     private fun hasSufficientFunds(amount: Double, currency: String): Boolean {
-        // Usa a variável 'currentUser' da Activity
         return when (currency) {
             "BRL" -> currentUser.brl >= amount
             "USD" -> currentUser.usd >= amount
@@ -214,7 +196,6 @@ class ConverteActivity : AppCompatActivity() {
     }
 
     private fun performTransaction(fromAmount: Double, fromCurrency: String, toAmount: Double, toCurrency: String) {
-        // Modifica a variável 'currentUser' da Activity
         when (fromCurrency) {
             "BRL" -> currentUser.brl -= fromAmount
             "USD" -> currentUser.usd -= fromAmount
