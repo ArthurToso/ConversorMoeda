@@ -1,6 +1,8 @@
 package com.arthurtoso.conversormoeda
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -15,6 +17,14 @@ class MainActivity : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+
+        val btn = findViewById<Button>(R.id.buttonTeste)
+        btn.setOnClickListener {
+            val intent = Intent(this, ConverteActivity::class.java)
+            val user = User(100000.00, 50000.00, 0.5)
+            intent.putExtra("USER_DATA", user)
+            startActivity(intent)
         }
     }
 }
