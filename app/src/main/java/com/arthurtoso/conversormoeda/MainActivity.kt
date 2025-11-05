@@ -19,10 +19,11 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        val user = User(100000.00, 50000.00, 0.5)
+
         val btn = findViewById<Button>(R.id.buttonTeste)
         btn.setOnClickListener {
             val intent = Intent(this, ConverteActivity::class.java)
-            val user = User(100000.00, 50000.00, 0.5)
             intent.putExtra("USER_DATA", user)
             startActivity(intent)
         }
